@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+                                 http://www.springframework.org/schema/beans/spring-beans.xsd
+                                 http://www.springframework.org/schema/security
+                                 http://www.springframework.org/schema/security/spring-security.xsd">
+        
+        <!-- auto-config="true" 를 설정한것만으로 기본 로그인페이지/ HTTP 기본인증/ 로그아웃 기능등을 제공 -->
+        
+        <!-- use-expressions = "true" 를 설정하지 않으면 default 가 false 이다. 이때는 SpEL 을 사용하지않는다.
+        	SpEL : 밑에서 authorities=".." 하는 대신 "hasRole(..)" 이렇게 적는 것.  -->
+       
+       <!--  
+        /** 로 오는 애들은 ROLE_USER 만 통과 시키겠다.   -->
+        <http auto-config="true" use-expressions="false">
+            <intercept-url pattern="/**" access="ROLE_USER" />
+        </http>
+       
+        
+        <!--지금은 이렇게 하는데 USER 정보들 DB 로 받와아야하는것. -->
+        <authentication-manager>
+            <authentication-provider>
+                <user-service>
+                    <user name="user" password="userPw" authorities="ROLE_USER"/>
+                    <user name="guest" password="guest" authorities="ROLE_GUEST"/>
+                </user-service>
+            </authentication-provider>
+        </authentication-manager>
+    
+</beans:beans>

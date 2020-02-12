@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+                                 http://www.springframework.org/schema/beans/spring-beans.xsd
+                                 http://www.springframework.org/schema/security
+                                 http://www.springframework.org/schema/security/spring-security.xsd">
+        
+     <!-- 검사 URL -->
+     
+     <!--intercept-url 순서 잘해줘야함. 순서 달라지면 결과 아예 달라짐.
+     	제한의 정도가 가장 적은것 부터 가장 큰 순서로 적어줘야함.  -->
+     <!-- permitAll : 모든사람에게 권한주기. -->
+    <http auto-config="true" use-expressions="true">
+        <intercept-url pattern="/login/loginForm" access="permitAll" />
+        <intercept-url pattern="/" access="permitAll" />
+        <intercept-url pattern="/admin/**" access="hasRole('ADMIN')" />
+        <intercept-url pattern="/**" access="hasAnyRole('USER, ADMIN')" />
+       
+      
+      <!-- 따로 만든 login 페이지를 적용시키려면 이렇게 설정. -->
+      <!-- login-page : 로그인 인증을 처리할 주소는 /login/loginForm 이다. 라는 뜻 -->
+      <!-- default-target-url : 로그인이 완료되면 "/" 로 이동하라는 뜻  -->
+      <!-- authentication-failure-url : 로그인 실패시 에러났다고.
+      									login/loginForm?error 가야하는 주소 -->
+      <!-- username-parameter : 로그인 폼에 아이디 입력 필드에 사용될 name 이다.
+      							기본값 : username -->
+      <!-- password-parameter : 로그인 폼에 비밀번호 입력 필드에 사용될 name 이다.
+      							기본값 : password -->						  
+        <form-login login-page="/login/loginForm"
+                    default-target-url="/"
+                    authentication-failure-url="/login/loginForm?error"
+                    username-parameter="id"
+                    password-parameter="password" />
+        
+        <!-- logout url 설정, logout 완료시 가야될 url(home 으로 설정함.)  -->
+        <logout logout-url="/logout"
+                logout-success-url="/" />  
+        
+        
+        <!-- 접근권한이 없는 애가 들어오게되면 내부적으로  controller 한테 이 주소를 넘겨줌.  -->        
+        <access-denied-handler error-page="/login/accessDenied" />
+        
+    </http>
+    
+    
+    <!-- JDBC 를 이용한 인증/권한 처리 -->
+    <!-- JDBC 를 이요하여 인증/권한 체크 방식은 크게 두가지
+    	 1. 지정된 형식으로 테이블 생성 방법
+    	 2. 기존에 작성된 데이터 베이스 연동 방법 -->
+    
+    <!-- 1번방식 -->
+    <beans:bean id="userDetailsService" class="org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl">
+        <beans:property name="dataSource" ref="dataSource"/>
+    </beans:bean> 
+    
+    
+    <authentication-manager>
+        <authentication-provider>
+        <jdbc-user-service 
+            data-source-ref="dataSource"
+            role-prefix=""
+            users-by-username-query="select username, password, enabled from users where username = ?"
+            authorities-by-username-query="select username, authority from authorities where username = ?"
+        />
+        </authentication-provider>
+    </authentication-manager> 
+</beans:beans>
